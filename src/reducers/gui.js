@@ -17,6 +17,7 @@ import monitorLayoutReducer, {monitorLayoutInitialState} from './monitor-layout'
 import projectChangedReducer, {projectChangedInitialState} from './project-changed';
 import projectStateReducer, {projectStateInitialState} from './project-state';
 import projectTitleReducer, {projectTitleInitialState} from './project-title';
+import projectOwnerReducer, {projectOwnerInitialState} from './project-owner';
 import fontsLoadedReducer, {fontsLoadedInitialState} from './fonts-loaded';
 import restoreDeletionReducer, {restoreDeletionInitialState} from './restore-deletion';
 import stageSizeReducer, {stageSizeInitialState} from './stage-size';
@@ -29,6 +30,7 @@ import vmReducer, {vmInitialState} from './vm';
 import vmStatusReducer, {vmStatusInitialState} from './vm-status';
 import workspaceMetricsReducer, {workspaceMetricsInitialState} from './workspace-metrics';
 import throttle from 'redux-throttle';
+import sessionReducer, {sessionInitialState} from './session';
 
 import decks from '../lib/libraries/decks/index.jsx';
 
@@ -54,8 +56,10 @@ const guiInitialState = {
     projectChanged: projectChangedInitialState,
     projectState: projectStateInitialState,
     projectTitle: projectTitleInitialState,
+    projectOwner: projectOwnerInitialState,
     fontsLoaded: fontsLoadedInitialState,
     restoreDeletion: restoreDeletionInitialState,
+    session: sessionInitialState,
     targets: targetsInitialState,
     theme: themeInitialState,
     timeout: timeoutInitialState,
@@ -70,24 +74,28 @@ const initPlayer = function (currentState) {
     return Object.assign(
         {},
         currentState,
-        {mode: {
-            isFullScreen: currentState.mode.isFullScreen,
-            isPlayerOnly: true,
-            // When initializing in player mode, make sure to reset
-            // hasEverEnteredEditorMode
-            hasEverEnteredEditor: false
-        }}
+        {
+            mode: {
+                isFullScreen: currentState.mode.isFullScreen,
+                isPlayerOnly: true,
+                // When initializing in player mode, make sure to reset
+                // hasEverEnteredEditorMode
+                hasEverEnteredEditor: false
+            }
+        }
     );
 };
 const initFullScreen = function (currentState) {
     return Object.assign(
         {},
         currentState,
-        {mode: {
-            isFullScreen: true,
-            isPlayerOnly: currentState.mode.isPlayerOnly,
-            hasEverEnteredEditor: currentState.mode.hasEverEnteredEditor
-        }}
+        {
+            mode: {
+                isFullScreen: true,
+                isPlayerOnly: currentState.mode.isPlayerOnly,
+                hasEverEnteredEditor: currentState.mode.hasEverEnteredEditor
+            }
+        }
     );
 };
 
@@ -95,12 +103,14 @@ const initEmbedded = function (currentState) {
     return Object.assign(
         {},
         currentState,
-        {mode: {
-            showBranding: true,
-            isFullScreen: true,
-            isPlayerOnly: true,
-            hasEverEnteredEditor: false
-        }}
+        {
+            mode: {
+                showBranding: true,
+                isFullScreen: true,
+                isPlayerOnly: true,
+                hasEverEnteredEditor: false
+            }
+        }
     );
 };
 
@@ -155,8 +165,10 @@ const guiReducer = combineReducers({
     projectChanged: projectChangedReducer,
     projectState: projectStateReducer,
     projectTitle: projectTitleReducer,
+    projectOwner: projectOwnerReducer,
     fontsLoaded: fontsLoadedReducer,
     restoreDeletion: restoreDeletionReducer,
+    session: sessionReducer,
     targets: targetReducer,
     theme: themeReducer,
     timeout: timeoutReducer,

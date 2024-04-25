@@ -395,6 +395,8 @@ const doneCreatingProject = (id, loadingState) => {
     }
 };
 
+
+// TODO 这个地方应该是暴露出去，这个project是自己的还是不是自己的
 const onFetchedProjectData = (projectData, loadingState) => {
     switch (loadingState) {
     case LoadingState.FETCHING_WITH_ID:

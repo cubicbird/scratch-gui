@@ -409,6 +409,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
         const isShowingWithId = getIsShowingWithId(loadingState);
         return {
             autoSaveTimeoutId: state.scratchGui.timeout.autoSaveTimeoutId,
+            canCreateNew: state.scratchGui.session.session && state.scratchGui.session.user.canCreateNew,
             isAnyCreatingNewState: getIsAnyCreatingNewState(loadingState),
             isLoading: getIsLoading(loadingState),
             isCreatingCopy: getIsCreatingCopy(loadingState),

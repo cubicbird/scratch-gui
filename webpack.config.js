@@ -5,12 +5,14 @@ const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+const CompressWebpackPlugin = require('compression-webpack-plugin');
 // PostCss
 const autoprefixer = require('autoprefixer');
 const postcssVars = require('postcss-simple-vars');
 const postcssImport = require('postcss-import');
 
 const ScratchWebpackConfigBuilder = require('scratch-webpack-configuration');
+const fs = require('fs');
 
 // const STATIC_PATH = process.env.STATIC_PATH || '/static';
 
@@ -36,10 +38,24 @@ const baseConfig = new ScratchWebpackConfigBuilder(
         },
         optimization: {
             splitChunks: {
-                chunks: 'all'
+                // chunks: 'all',
+                minSize: 30,
+                cacheGroups: {
+                    scratchVendors: {
+                        test: /[\\/]node_modules[\\/]scratch-[^\\/]+[\\/]/,
+                        name: 'scratch-vendor',
+                        chunks: 'initial',
+                        priority: -10
+                    },
+                    vendors: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'vendor',
+                        chunks: 'initial',
+                        priority: -20
+                    }
+                }
             },
-            mergeDuplicateChunks: true,
-            runtimeChunk: 'single'
+            mergeDuplicateChunks: true
         }
     })
     .addModuleRule({
@@ -136,37 +152,22 @@ const buildConfig = baseConfig.clone()
     .enableDevServer(process.env.PORT || 8602)
     .merge({
         entry: {
-            gui: './src/playground/index.jsx',
-            blocksonly: './src/playground/blocks-only.jsx',
-            compatibilitytesting: './src/playground/compatibility-testing.jsx',
-            player: './src/playground/player.jsx'
+            'lib.min': ['react', 'react-dom'],
+            'gui': './src/playground/index.jsx'
         },
         output: {
-            path: path.resolve(__dirname, 'build')
+            path: path.resolve(__dirname, 'build'),
+            filename: '[name].js'
+        },
+        externals: {
+            React: 'react',
+            ReactDOM: 'react-dom'
         }
     })
     .addPlugin(new HtmlWebpackPlugin({
-        chunks: ['gui'],
+        chunks: ['lib.min', 'gui'],
         template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI'
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
-        chunks: ['blocksonly'],
-        filename: 'blocks-only.html',
-        template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI: Blocks Only Example'
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
-        chunks: ['compatibilitytesting'],
-        filename: 'compatibility-testing.html',
-        template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI: Compatibility Testing'
-    }))
-    .addPlugin(new HtmlWebpackPlugin({
-        chunks: ['player'],
-        filename: 'player.html',
-        template: 'src/playground/index.ejs',
-        title: 'Scratch 3.0 GUI: Player Example'
+        title: 'Scratch@Cubicbird'
     }))
     .addPlugin(new CopyWebpackPlugin({
         patterns: [
@@ -188,6 +189,30 @@ const buildConfig = baseConfig.clone()
 // `BUILD_MODE=dist npm run build`
 const buildDist = process.env.NODE_ENV === 'production' || process.env.BUILD_MODE === 'dist';
 
+if (buildDist) {
+    buildConfig.addPlugin(new CompressWebpackPlugin({
+        filename: '[path][base].br[query]',
+        algorithm: 'brotliCompress',
+        test: /\.(js|css|html|svg)$/,
+        compressionOptions: {level: 11},
+        threshold: 10240,
+        minRatio: 0.8,
+        deleteOriginalAssets: false
+    }));
+}
+
 module.exports = buildDist ?
     [buildConfig.get(), distConfig.get()] :
     buildConfig.get();
+
+if (!buildDist) {
+    module.exports.devServer = {
+        proxy: [{
+            context: ['/api'],
+            target: 'http://cbadmin.cubicbird.local:8000/cbadmin/',
+            // target: 'http://localhost:3001',
+            changeOrigin: true
+        }
+        ]
+    };
+}

@@ -10,6 +10,8 @@ import {setPlayer, setFullScreen} from '../reducers/mode.js';
 
 import locales from 'scratch-l10n';
 import {detectLocale} from './detect-locale';
+import {getLoginError, getNoSession, sessionInitialState, setSession} from '../reducers/session';
+import api from './api';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -45,6 +47,8 @@ const AppStateHOC = function (WrappedComponent, localesOnly) {
                 // You are right, this is gross. But it's necessary to avoid
                 // importing unneeded code that will crash unsupported browsers.
                 const guiRedux = require('../reducers/gui');
+                // const sessionRedux = require('../reducers/session');
+                // const sessionReducer = sessionRedux.default;
                 const guiReducer = guiRedux.default;
                 const {
                     guiInitialState,
@@ -66,11 +70,13 @@ const AppStateHOC = function (WrappedComponent, localesOnly) {
                 } else if (props.showTelemetryModal) {
                     initializedGui = initTelemetryModal(initializedGui);
                 }
+
                 reducers = {
                     locales: localesReducer,
                     scratchGui: guiReducer,
                     scratchPaint: ScratchPaintReducer
                 };
+
                 initialState = {
                     locales: initializedLocales,
                     scratchGui: initializedGui
@@ -84,6 +90,12 @@ const AppStateHOC = function (WrappedComponent, localesOnly) {
                 enhancer
             );
         }
+
+        componentDidMount () {
+            api.get_login_info(session => this.store.dispatch(setSession(session)),
+                () => this.store.dispatch(getNoSession()));
+        }
+
         componentDidUpdate (prevProps) {
             if (localesOnly) return;
             if (prevProps.isPlayerOnly !== this.props.isPlayerOnly) {
@@ -115,7 +127,8 @@ const AppStateHOC = function (WrappedComponent, localesOnly) {
         isFullScreen: PropTypes.bool,
         isPlayerOnly: PropTypes.bool,
         isTelemetryEnabled: PropTypes.bool,
-        showTelemetryModal: PropTypes.bool
+        showTelemetryModal: PropTypes.bool,
+        session: PropTypes.object
     };
     return AppStateWrapper;
 };

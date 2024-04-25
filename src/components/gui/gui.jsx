@@ -22,7 +22,7 @@ import CostumeLibrary from '../../containers/costume-library.jsx';
 import BackdropLibrary from '../../containers/backdrop-library.jsx';
 import Watermark from '../../containers/watermark.jsx';
 
-import Backpack from '../../containers/backpack.jsx';
+
 import WebGlModal from '../../containers/webgl-modal.jsx';
 import TipsLibrary from '../../containers/tips-library.jsx';
 import Cards from '../../containers/cards.jsx';
@@ -40,6 +40,8 @@ import addExtensionIcon from './icon--extensions.svg';
 import codeIcon from './icon--code.svg';
 import costumesIcon from './icon--costumes.svg';
 import soundsIcon from './icon--sounds.svg';
+import SpriteLibrary from '../../containers/sprite-library';
+import ProjectLibrary from '../../containers/project-library';
 
 const messages = defineMessages({
     addExtension: {
@@ -108,6 +110,7 @@ const GUIComponent = props => {
         onProjectTelemetryEvent,
         onRequestCloseBackdropLibrary,
         onRequestCloseCostumeLibrary,
+        onRequestCloseProjectLibrary,
         onRequestCloseTelemetryModal,
         onSeeCommunity,
         onShare,
@@ -116,7 +119,10 @@ const GUIComponent = props => {
         onTelemetryModalCancel,
         onTelemetryModalOptIn,
         onTelemetryModalOptOut,
+        projectLibraryVisible,
         showComingSoon,
+        session,
+        sessionExists,
         soundsTabVisible,
         stageSizeMode,
         targetIsStage,
@@ -156,7 +162,7 @@ const GUIComponent = props => {
                 vm={vm}
             >
                 {alertsVisible ? (
-                    <Alerts className={styles.alertsContainer} />
+                    <Alerts className={styles.alertsContainer}/>
                 ) : null}
             </StageWrapper>
         ) : (
@@ -177,22 +183,22 @@ const GUIComponent = props => {
                     />
                 ) : null}
                 {loading ? (
-                    <Loader />
+                    <Loader/>
                 ) : null}
                 {isCreating ? (
-                    <Loader messageId="gui.loader.creating" />
+                    <Loader messageId="gui.loader.creating"/>
                 ) : null}
                 {isRendererSupported ? null : (
-                    <WebGlModal isRtl={isRtl} />
+                    <WebGlModal isRtl={isRtl}/>
                 )}
                 {tipsLibraryVisible ? (
-                    <TipsLibrary />
+                    <TipsLibrary/>
                 ) : null}
                 {cardsVisible ? (
-                    <Cards />
+                    <Cards/>
                 ) : null}
                 {alertsVisible ? (
-                    <Alerts className={styles.alertsContainer} />
+                    <Alerts className={styles.alertsContainer}/>
                 ) : null}
                 {connectionModalVisible ? (
                     <ConnectionModal
@@ -209,6 +215,11 @@ const GUIComponent = props => {
                     <BackdropLibrary
                         vm={vm}
                         onRequestClose={onRequestCloseBackdropLibrary}
+                    />
+                ) : null}
+                {projectLibraryVisible ? (
+                    <ProjectLibrary
+                        onRequestClose={onRequestCloseProjectLibrary}
                     />
                 ) : null}
                 <MenuBar
@@ -232,6 +243,8 @@ const GUIComponent = props => {
                     logo={logo}
                     renderLogin={renderLogin}
                     showComingSoon={showComingSoon}
+                    session={session}
+                    sessionExists={sessionExists}
                     onClickAbout={onClickAbout}
                     onClickAccountNav={onClickAccountNav}
                     onClickLogo={onClickLogo}
@@ -333,19 +346,16 @@ const GUIComponent = props => {
                                         </button>
                                     </Box>
                                     <Box className={styles.watermark}>
-                                        <Watermark />
+                                        <Watermark/>
                                     </Box>
                                 </TabPanel>
                                 <TabPanel className={tabClassNames.tabPanel}>
-                                    {costumesTabVisible ? <CostumeTab vm={vm} /> : null}
+                                    {costumesTabVisible ? <CostumeTab vm={vm}/> : null}
                                 </TabPanel>
                                 <TabPanel className={tabClassNames.tabPanel}>
-                                    {soundsTabVisible ? <SoundTab vm={vm} /> : null}
+                                    {soundsTabVisible ? <SoundTab vm={vm}/> : null}
                                 </TabPanel>
                             </Tabs>
-                            {backpackVisible ? (
-                                <Backpack host={backpackHost} />
-                            ) : null}
                         </Box>
 
                         <Box className={classNames(styles.stageAndTargetWrapper, styles[stageSize])}>
@@ -365,7 +375,7 @@ const GUIComponent = props => {
                         </Box>
                     </Box>
                 </Box>
-                <DragLayer />
+                <DragLayer/>
             </Box>
         );
     }}</MediaQuery>);
@@ -419,6 +429,7 @@ GUIComponent.propTypes = {
     onRequestCloseBackdropLibrary: PropTypes.func,
     onRequestCloseCostumeLibrary: PropTypes.func,
     onRequestCloseTelemetryModal: PropTypes.func,
+    onRequestCloseProjectLibrary: PropTypes.func,
     onSeeCommunity: PropTypes.func,
     onShare: PropTypes.func,
     onShowPrivacyPolicy: PropTypes.func,
@@ -428,7 +439,9 @@ GUIComponent.propTypes = {
     onTelemetryModalOptIn: PropTypes.func,
     onTelemetryModalOptOut: PropTypes.func,
     onToggleLoginOpen: PropTypes.func,
+    projectLibraryVisible: PropTypes.bool,
     renderLogin: PropTypes.func,
+    sessionExists: PropTypes.bool,
     showComingSoon: PropTypes.bool,
     soundsTabVisible: PropTypes.bool,
     stageSizeMode: PropTypes.oneOf(Object.keys(STAGE_SIZE_MODES)),
@@ -448,7 +461,7 @@ GUIComponent.defaultProps = {
     canCreateNew: false,
     canEditTitle: false,
     canManageFiles: true,
-    canRemix: false,
+    canRemix: true,
     canSave: false,
     canCreateCopy: false,
     canShare: false,
@@ -459,6 +472,8 @@ GUIComponent.defaultProps = {
     isTotallyNormal: false,
     loading: false,
     showComingSoon: false,
+    showLoginModal: false,
+    sessionExists: false,
     stageSizeMode: STAGE_SIZE_MODES.large
 };
 
@@ -466,6 +481,12 @@ const mapStateToProps = state => ({
     // This is the button's mode, as opposed to the actual current state
     blocksId: state.scratchGui.timeTravel.year.toString(),
     stageSizeMode: state.scratchGui.stageSize.stageSize,
+    sessionExists: state.scratchGui.session.session,
+    canSave: state.scratchGui.session.session &&
+        state.scratchGui.projectOwner === state.scratchGui.session.user.username &&
+        state.scratchGui.session.user.canCreateNew,
+    canRemix: state.scratchGui.session.session &&
+        state.scratchGui.projectOwner !== state.scratchGui.session.user.username,
     theme: state.scratchGui.theme.theme
 });
 
