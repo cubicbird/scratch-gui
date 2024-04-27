@@ -12,6 +12,7 @@ import locales from 'scratch-l10n';
 import {detectLocale} from './detect-locale';
 import {getLoginError, getNoSession, sessionInitialState, setSession} from '../reducers/session';
 import api from './api';
+import {setProjectId} from '../reducers/project-state';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -92,8 +93,13 @@ const AppStateHOC = function (WrappedComponent, localesOnly) {
         }
 
         componentDidMount () {
-            api.get_login_info(session => this.store.dispatch(setSession(session)),
-                () => this.store.dispatch(getNoSession()));
+            api.get_login_info(loginInfo => {
+
+                this.store.dispatch(setSession(loginInfo));
+                this.store.dispatch(setProjectId(loginInfo.lastProjectId));
+
+            },
+            () => this.store.dispatch(getNoSession()));
         }
 
         componentDidUpdate (prevProps) {

@@ -1,6 +1,7 @@
 import {getLoginError, setSession} from '../reducers/session';
 import {closeLoginMenu} from '../reducers/menus';
 import {onSetProjectOwner} from '../reducers/project-owner';
+import {setProjectId} from '../reducers/project-state';
 
 let accessToken = null;
 let refreshToken = null;
@@ -67,13 +68,14 @@ const api = {
 
     // eslint-disable-next-line require-await
     get_login_info (resolve, reject) {
-        const request = api.protectedRequest('/api/login_info');
+        const request = api.protectedRequest('/api/scratch/login_info');
         request.then(data => resolve({
             session: true,
             user: {
                 userId: data.userId,
                 username: data.usernameForDisplay
-            }
+            },
+            lastProjectId: data.lastProjectId
         }))
             .catch(err => reject(err));
 
@@ -94,7 +96,7 @@ const api = {
             body: JSON.stringify(data)
         };
 
-        await fetch('/api/login', options)
+        await fetch('/api/scratch/login', options)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('请检查用户名/密码');
@@ -106,7 +108,8 @@ const api = {
                 accessToken = responseData.access;
                 refreshToken = responseData.refresh;
                 dispatch(setSession({user: {username: responseData.usernameForDisplay}}));
-                dispatch(onSetProjectOwner(responseData.usernameForDisplay));
+                // dispatch(onSetProjectOwner(responseData.usernameForDisplay));
+                dispatch(setProjectId(responseData.lastProjectId));
                 // dispatch(closeLoginMenu());
             })
             .catch(error => {
