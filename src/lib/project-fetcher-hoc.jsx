@@ -24,6 +24,7 @@ import {
 import log from './log';
 import storage from './storage';
 import {onSetProjectOwner} from '../reducers/project-owner';
+import {setProjectTitle} from '../reducers/project-title';
 
 /* Higher Order Component to provide behavior for loading projects by id. If
  * there's no id, the default project is loaded.
@@ -93,13 +94,13 @@ const ProjectFetcherHOC = function (WrappedComponent) {
                         // 这个地方默认的内置项目id是'0'
                         if (projectId === '0') {
                             this.props.onFetchedProjectData(projectAsset.data, loadingState);
-                            // this.props.onSetProjectOwner();
                         } else {
                             // TODO 这个地方如果是多返回一些内容的话，就在这里解包。
                             // 把data给project data，然后其他的给其他
                             const assetData = this.parseAssetData(projectAsset.data);
                             this.props.onFetchedProjectData(assetData.sourceCode, loadingState);
                             this.props.onSetProjectOwner(assetData.owner);
+                            this.props.onSetProjectTitle(assetData.projectTitle);
                         }
 
                     } else {
@@ -153,6 +154,7 @@ const ProjectFetcherHOC = function (WrappedComponent) {
         onError: PropTypes.func,
         onFetchedProjectData: PropTypes.func,
         onSetProjectOwner: PropTypes.func,
+        onSetProjectTitle: PropTypes.func,
         onProjectUnchanged: PropTypes.func,
         projectHost: PropTypes.string,
         projectToken: PropTypes.string,
@@ -161,7 +163,7 @@ const ProjectFetcherHOC = function (WrappedComponent) {
         setProjectId: PropTypes.func
     };
     ProjectFetcherComponent.defaultProps = {
-        assetHost: 'https://assets.scratch.mit.edu',
+        assetHost: '/api/scratch/asset',
         projectHost: '/api/scratch/project'
     };
 
@@ -180,7 +182,8 @@ const ProjectFetcherHOC = function (WrappedComponent) {
             dispatch(onFetchedProjectData(projectData, loadingState)),
         setProjectId: projectId => dispatch(setProjectId(projectId)),
         onProjectUnchanged: () => dispatch(setProjectUnchanged()),
-        onSetProjectOwner: owner => dispatch(onSetProjectOwner(owner))
+        onSetProjectOwner: owner => dispatch(onSetProjectOwner(owner)),
+        onSetProjectTitle: title => dispatch(setProjectTitle(title))
     });
     // Allow incoming props to override redux-provided props. Used to mock in tests.
     const mergeProps = (stateProps, dispatchProps, ownProps) => Object.assign(

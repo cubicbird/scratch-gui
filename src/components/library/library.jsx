@@ -230,6 +230,7 @@ class LibraryComponent extends React.Component {
                             onMouseEnter={this.handleMouseEnter}
                             onMouseLeave={this.handleMouseLeave}
                             onSelect={this.handleSelect}
+                            getIconURLFromIconMd5={this.props.getIconURLFromIconMd5}
                         />
                     )) : (
                         <div className={styles.spinnerWrapper}>
@@ -268,6 +269,7 @@ LibraryComponent.propTypes = {
     onItemSelected: PropTypes.func,
     onRequestClose: PropTypes.func,
     setStopHandler: PropTypes.func,
+    getIconURLFromIconMd5: PropTypes.func,
     showPlayButton: PropTypes.bool,
     tags: PropTypes.arrayOf(PropTypes.shape(TagButton.propTypes)),
     title: PropTypes.string.isRequired

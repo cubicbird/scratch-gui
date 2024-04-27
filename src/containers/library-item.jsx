@@ -26,29 +26,35 @@ class LibraryItem extends React.PureComponent {
             isRotatingIcon: false
         };
     }
+
     componentWillUnmount () {
         clearInterval(this.intervalId);
     }
+
     handleBlur (id) {
         this.handleMouseLeave(id);
     }
+
     handleClick (e) {
         if (!this.props.disabled) {
             this.props.onSelect(this.props.id);
         }
         e.preventDefault();
     }
+
     handleFocus (id) {
         if (!this.props.showPlayButton) {
             this.handleMouseEnter(id);
         }
     }
+
     handleKeyPress (e) {
         if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
             this.props.onSelect(this.props.id);
         }
     }
+
     handleMouseEnter () {
         // only show hover effects on the item if not showing a play button
         if (!this.props.showPlayButton) {
@@ -61,6 +67,7 @@ class LibraryItem extends React.PureComponent {
             }
         }
     }
+
     handleMouseLeave () {
         // only show hover effects on the item if not showing a play button
         if (!this.props.showPlayButton) {
@@ -72,25 +79,31 @@ class LibraryItem extends React.PureComponent {
             }
         }
     }
+
     handlePlay () {
         this.props.onMouseEnter(this.props.id);
     }
+
     handleStop () {
         this.props.onMouseLeave(this.props.id);
     }
+
     startRotatingIcons () {
         this.rotateIcon();
         this.intervalId = setInterval(this.rotateIcon, 300);
     }
+
     stopRotatingIcons () {
         if (this.intervalId) {
             this.intervalId = clearInterval(this.intervalId);
         }
     }
+
     rotateIcon () {
         const nextIconIndex = (this.state.iconIndex + 1) % this.props.icons.length;
         this.setState({iconIndex: nextIconIndex});
     }
+
     curIconMd5 () {
         const iconMd5Prop = this.props.iconMd5;
         if (this.props.icons &&
@@ -103,11 +116,11 @@ class LibraryItem extends React.PureComponent {
         }
         return iconMd5Prop;
     }
+
     render () {
         const iconMd5 = this.curIconMd5();
-        const iconURL = iconMd5 ?
-            `https://cdn.assets.scratch.mit.edu/internalapi/asset/${iconMd5}/get/` :
-            this.props.iconRawURL;
+        const iconURL = this.props.getIconURLFromIconMd5(iconMd5, this.props.iconRawURL);
+
         return (
             <LibraryItemComponent
                 bluetoothRequired={this.props.bluetoothRequired}
@@ -168,7 +181,14 @@ LibraryItem.propTypes = {
     onMouseEnter: PropTypes.func.isRequired,
     onMouseLeave: PropTypes.func.isRequired,
     onSelect: PropTypes.func.isRequired,
-    showPlayButton: PropTypes.bool
+    showPlayButton: PropTypes.bool,
+    getIconURLFromIconMd5: PropTypes.func
+};
+
+LibraryItem.defaultProps = {
+    getIconURLFromIconMd5: (iconMd5, iconRawURL) => (iconMd5 ?
+        `https://cdn.assets.scratch.mit.edu/internalapi/asset/${iconMd5}/get/` :
+        iconRawURL)
 };
 
 export default injectIntl(LibraryItem);

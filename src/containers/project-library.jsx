@@ -5,6 +5,7 @@ import {defineMessages, injectIntl, intlShape} from 'react-intl';
 
 import LibraryComponent from '../components/library/library.jsx';
 import api from '../lib/api';
+import {setProjectTitle} from '../reducers/project-title';
 import {connect} from 'react-redux';
 
 const messages = defineMessages({
@@ -36,12 +37,8 @@ class ProjectLibrary extends React.PureComponent {
     }
 
     handleItemSelect (item) {
-        window.location = item.rawURL;
-        // Randomize position of library sprite
-        // randomizeSpritePosition(item);
-        // this.props.vm.addSprite(JSON.stringify(item)).then(() => {
-        //     this.props.onActivateBlocksTab();
-        // });
+        this.props.onProjectClick(item.name);
+        window.location.hash = item.md5ext;
     }
 
     render () {
@@ -53,6 +50,7 @@ class ProjectLibrary extends React.PureComponent {
                 title={this.props.intl.formatMessage(messages.libraryTitle)}
                 onItemSelected={this.handleItemSelect}
                 onRequestClose={this.props.onRequestClose}
+                getIconURLFromIconMd5={this.props.getIconURLFromIconMd5}
             />
         );
     }
@@ -61,8 +59,23 @@ class ProjectLibrary extends React.PureComponent {
 ProjectLibrary.propTypes = {
     intl: intlShape.isRequired,
     onActivateBlocksTab: PropTypes.func.isRequired,
-    onRequestClose: PropTypes.func
+    onRequestClose: PropTypes.func,
+    onProjectClick: PropTypes.func,
+    getIconURLFromIconMd5: PropTypes.func
 };
 
 
-export default injectIntl(ProjectLibrary);
+ProjectLibrary.defaultProps = {
+    getIconURLFromIconMd5: (iconMd5, iconRawURL) => (iconMd5 ?
+        `api/scratch/thumbnail/${iconMd5}` :
+        iconRawURL)
+};
+
+const mapDispatchToProps = dispatch => ({
+    onProjectClick: title => dispatch(setProjectTitle(title))
+});
+
+export default injectIntl(connect(
+    null,
+    mapDispatchToProps
+)(ProjectLibrary));

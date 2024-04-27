@@ -92,6 +92,10 @@ const ProjectSaverHOC = function (WrappedComponent) {
             } else if (!this.props.isRemixing && prevProps.isRemixing) {
                 this.props.onRemixing(false);
             }
+            // else if (this.props.reduxProjectTitle !== prevProps.reduxProjectTitle) {
+            //     this.props.onUpdateProjectData();
+            // }
+
 
             // see if we should "create" the current project on the server
             //
@@ -154,7 +158,11 @@ const ProjectSaverHOC = function (WrappedComponent) {
         }
         updateProjectToStorage () {
             this.props.onShowSavingAlert();
-            return this.storeProject(this.props.reduxProjectId)
+
+            // 原版这个地方没有更新projectTitle，这里要加一下
+            return this.storeProject(this.props.reduxProjectId, {
+                title: this.props.reduxProjectTitle
+            })
                 .then(() => {
                     // there's an http response object available here, but we don't need to examine
                     // it, because there are no values contained in it that we care about

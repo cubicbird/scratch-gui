@@ -881,6 +881,11 @@ const mapStateToProps = (state, ownProps) => {
         modeMenuOpen: modeMenuOpen(state),
         projectTitle: state.scratchGui.projectTitle,
         sessionExists: state.scratchGui.session && typeof state.scratchGui.session.session !== 'undefined',
+        canSave: state.scratchGui.session.session &&
+            state.scratchGui.projectOwner.id === state.scratchGui.session.user.userId &&
+            state.scratchGui.session.user.canCreateNew,
+        canRemix: state.scratchGui.session.session &&
+            state.scratchGui.projectOwner.id !== state.scratchGui.session.user.userId,
         settingsMenuOpen: settingsMenuOpen(state),
         username: state.scratchGui.session && state.scratchGui.session.session &&
             state.scratchGui.session.user && state.scratchGui.session.user.username,
