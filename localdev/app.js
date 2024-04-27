@@ -44,7 +44,7 @@ const writeProjectToLocalFile = (projectId, requestBody) => {
     writeBodyToLocalFile(`${projectId}.json`, requestBody);
 };
 
-app.post('/api/login', (req, res) => {
+app.post('/api/scratch/login', (req, res) => {
     res.json({
         usernameForDisplay: '方块鸟',
         access: 'access_token',
@@ -52,7 +52,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-app.get('/api/login_info', (req, res) => {
+app.get('/api/scratch/login_info', (req, res) => {
 
     res.json({usernameForDisplay: '方块鸟'});
     // res.status(401);

@@ -483,10 +483,10 @@ const mapStateToProps = state => ({
     stageSizeMode: state.scratchGui.stageSize.stageSize,
     sessionExists: state.scratchGui.session.session,
     canSave: state.scratchGui.session.session &&
-        state.scratchGui.projectOwner === state.scratchGui.session.user.username &&
+        state.scratchGui.projectOwner.id === state.scratchGui.session.user.id &&
         state.scratchGui.session.user.canCreateNew,
     canRemix: state.scratchGui.session.session &&
-        state.scratchGui.projectOwner !== state.scratchGui.session.user.username,
+        state.scratchGui.projectOwner.id !== state.scratchGui.session.user.id,
     theme: state.scratchGui.theme.theme
 });
 

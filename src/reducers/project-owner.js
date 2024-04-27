@@ -2,7 +2,10 @@ const SET_PROJECT_OWNER = 'projectOwner/SET_PROJECT_OWNER';
 
 // we are initializing to a blank string instead of an actual title,
 // because it would be hard to localize here
-const initialState = '';
+const initialState = {
+    id: -1,
+    name: ''
+};
 
 const reducer = function (state = initialState, action) {
     switch (action.type) {
