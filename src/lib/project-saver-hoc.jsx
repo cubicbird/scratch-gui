@@ -33,6 +33,7 @@ import {
     getIsUpdating,
     projectError
 } from '../reducers/project-state';
+import api from './api';
 
 /**
  * Higher Order Component to provide behavior for saving projects.
@@ -410,7 +411,10 @@ const ProjectSaverHOC = function (WrappedComponent) {
         onRemixing: () => {},
         onSetProjectThumbnailer: () => {},
         onSetProjectSaver: () => {},
-        onUpdateProjectData: saveProjectToServer
+        onUpdateProjectData: saveProjectToServer,
+        onUpdateProjectThumbnail: (projectId, blob) => {
+            api.updateProjectThumbnail(projectId, blob);
+        }
     };
     const mapStateToProps = (state, ownProps) => {
         const loadingState = state.scratchGui.projectState.loadingState;

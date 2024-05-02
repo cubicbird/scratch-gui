@@ -15,7 +15,7 @@ const reducer = function (state = initialState, action) {
         return state;
     }
 };
-const onSetProjectOwner = owner => {
+const setProjectOwner = owner => {
     if (owner) {
         return {
             type: SET_PROJECT_OWNER,
@@ -32,5 +32,5 @@ const onSetProjectOwner = owner => {
 export {
     reducer as default,
     initialState as projectOwnerInitialState,
-    onSetProjectOwner
+    setProjectOwner
 };

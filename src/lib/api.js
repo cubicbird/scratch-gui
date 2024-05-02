@@ -1,10 +1,12 @@
 import {getLoginError, setSession} from '../reducers/session';
-import {closeLoginMenu} from '../reducers/menus';
-import {onSetProjectOwner} from '../reducers/project-owner';
 import {setProjectId} from '../reducers/project-state';
+import OSS from 'ali-oss/lib/browser';
 
 let accessToken = null;
 let refreshToken = null;
+let ossAccessKeyId = null;
+let ossAccessKeySecret = null;
+let ossSecurityToken = null;
 
 const api = {
     async protectedRequest (url, method = 'GET', data = null) {
@@ -69,16 +71,43 @@ const api = {
     // eslint-disable-next-line require-await
     get_login_info (resolve, reject) {
         const request = api.protectedRequest('/api/scratch/login_info');
-        request.then(data => resolve({
-            session: true,
-            user: {
-                userId: data.userId,
-                username: data.usernameForDisplay
-            },
-            lastProjectId: data.lastProjectId
-        }))
+        request.then(data => {
+            ossAccessKeyId = data.stsAccessId;
+            ossAccessKeySecret = data.stsSecret;
+            ossSecurityToken = data.stsToken;
+            resolve({
+                session: true,
+                user: {
+                    userId: data.userId,
+                    username: data.usernameForDisplay
+                },
+                lastProjectId: data.lastProjectId
+            });
+        })
             .catch(err => reject(err));
 
+    },
+
+    async updateProjectThumbnail (projectId, blob) {
+        console.log(blob);
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'X-Login': true
+            },
+            body: blob
+        };
+
+        await fetch('/api/scratch/projecthumbnail', options)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('请检查用户名/密码');
+                }
+                return response.json();
+            })
+            .then(console.log)
+            .catch(console.log);
     },
 
     async login (dispatch, username, password) {
@@ -107,10 +136,18 @@ const api = {
             .then(responseData => {
                 accessToken = responseData.access;
                 refreshToken = responseData.refresh;
-                dispatch(setSession({user: {username: responseData.usernameForDisplay}}));
+                ossAccessKeyId = responseData.stsAccessId;
+                ossAccessKeySecret = responseData.stsSecret;
+                ossSecurityToken = responseData.stsToken;
+                dispatch(setSession({
+                    session: true,
+                    user: {
+                        userId: responseData.userId,
+                        username: responseData.usernameForDisplay
+                    }
+                }));
                 // dispatch(onSetProjectOwner(responseData.usernameForDisplay));
                 dispatch(setProjectId(responseData.lastProjectId));
-                // dispatch(closeLoginMenu());
             })
             .catch(error => {
                 dispatch(getLoginError(error));
@@ -137,7 +174,45 @@ const api = {
         };
         fetch('/api/logout', options)
             .finally(cleanup);
-    }
+    },
+
+    createOssClient: () => new OSS({
+        region: 'oss-cn-shenzhen',
+        bucket: 'cubicbird-scratch',
+        accessKeyId: ossAccessKeyId,
+        accessKeySecret: ossAccessKeySecret,
+        stsToken: ossSecurityToken,
+        refreshSTSToken: async () => {
+            const refreshToken = await api.get_login_info();
+            ossAccessKeyId = refreshToken.AccessKeyId;
+            ossAccessKeySecret = refreshToken.AccessKeySecret;
+            ossSecurityToken = refreshToken.SecurityToken;
+            return {
+                accessKeyId: ossAccessKeyId,
+                accessKeySecret: ossAccessKeySecret,
+                stsToken: ossSecurityToken
+            };
+        },
+        refreshSTSTokenInterval: 1200000
+    }),
+
+    uploadAsset: async (asset, data) => {
+        const ossClient = api.createOssClient();
+        const options = {
+            // mime: 'json',
+            // headers: {'Content-Type': 'text/plain'}
+        };
+        const rest = await ossClient.put(`asset/${asset}`, data, options);
+        return rest;
+    },
+
+    getAssetUrlForGet: asset => {
+        const ossClient = api.createOssClient();
+        return ossClient.signatureUrl(`asset/${asset}`);
+    },
+
+    getAssetUrlForPost: asset => api.getAssetUrlForGet(asset)
+
 
 };
 

@@ -23,7 +23,7 @@ import {
 
 import log from './log';
 import storage from './storage';
-import {onSetProjectOwner} from '../reducers/project-owner';
+import {setProjectOwner} from '../reducers/project-owner';
 import {setProjectTitle} from '../reducers/project-title';
 
 /* Higher Order Component to provide behavior for loading projects by id. If
@@ -182,7 +182,7 @@ const ProjectFetcherHOC = function (WrappedComponent) {
             dispatch(onFetchedProjectData(projectData, loadingState)),
         setProjectId: projectId => dispatch(setProjectId(projectId)),
         onProjectUnchanged: () => dispatch(setProjectUnchanged()),
-        onSetProjectOwner: owner => dispatch(onSetProjectOwner(owner)),
+        onSetProjectOwner: owner => dispatch(setProjectOwner(owner)),
         onSetProjectTitle: title => dispatch(setProjectTitle(title))
     });
     // Allow incoming props to override redux-provided props. Used to mock in tests.

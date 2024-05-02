@@ -1,6 +1,8 @@
 import ScratchStorage from 'scratch-storage';
 
 import defaultProject from './default-project';
+import api from './api';
+
 
 /**
  * Wrapper for ScratchStorage which adds default web sources.
@@ -11,6 +13,7 @@ class Storage extends ScratchStorage {
         super();
         this.cacheDefaultProject();
     }
+
     addOfficialScratchWebStores () {
         this.addWebStore(
             [this.AssetType.Project],
@@ -32,34 +35,42 @@ class Storage extends ScratchStorage {
             asset => `static/extension-assets/scratch3_music/${asset.assetId}.${asset.dataFormat}`
         );
     }
+
     setProjectHost (projectHost) {
         this.projectHost = projectHost;
     }
+
     setProjectToken (projectToken) {
         this.projectToken = projectToken;
     }
+
     getProjectGetConfig (projectAsset) {
         const path = `${this.projectHost}/${projectAsset.assetId}`;
         const qs = this.projectToken ? `?token=${this.projectToken}` : '';
         return path + qs;
     }
+
     getProjectCreateConfig () {
         return {
             url: `${this.projectHost}/`,
             withCredentials: true
         };
     }
+
     getProjectUpdateConfig (projectAsset) {
         return {
             url: `${this.projectHost}/${projectAsset.assetId}`,
             withCredentials: true
         };
     }
+
     setAssetHost (assetHost) {
         this.assetHost = assetHost;
     }
+
     getAssetGetConfig (asset) {
-        return `${this.assetHost}/${asset.assetId}.${asset.dataFormat}`;
+        // TODO 这里应该通过oss client利用assetId去拿到图片
+        return api.getAssetUrlForGet(`${asset.assetId}.${asset.dataFormat}`);
     }
     getAssetCreateConfig (asset) {
         return {
@@ -69,7 +80,10 @@ class Storage extends ScratchStorage {
             // Then when storage finds this config to use for the "update", still POSTs
             method: 'post',
             url: `${this.assetHost}/${asset.assetId}.${asset.dataFormat}`,
-            withCredentials: true
+            withCredentials: true,
+            headers: {
+                'Content-Disposition': `attachment; filename="${asset.assetId}.svg"`
+            }
         };
     }
     setTranslatorFunction (translator) {

@@ -12,7 +12,6 @@ const postcssVars = require('postcss-simple-vars');
 const postcssImport = require('postcss-import');
 
 const ScratchWebpackConfigBuilder = require('scratch-webpack-configuration');
-const fs = require('fs');
 
 // const STATIC_PATH = process.env.STATIC_PATH || '/static';
 
@@ -33,7 +32,12 @@ const baseConfig = new ScratchWebpackConfigBuilder(
         resolve: {
             fallback: {
                 Buffer: require.resolve('buffer/'),
-                stream: require.resolve('stream-browserify')
+                stream: require.resolve('stream-browserify'),
+                path: require.resolve('path-browserify'),
+                http: require.resolve('stream-http'),
+                https: require.resolve('https-browserify'),
+                querystring: require.resolve('querystring-browser'),
+                timers: require.resolve('timers-browserify')
             }
         },
         optimization: {
@@ -99,7 +103,8 @@ const baseConfig = new ScratchWebpackConfigBuilder(
         type: 'asset/resource'
     })
     .addPlugin(new webpack.ProvidePlugin({
-        Buffer: ['buffer', 'Buffer']
+        Buffer: ['buffer', 'Buffer'],
+        process: 'process/browser'
     }))
     .addPlugin(new webpack.DefinePlugin({
         'process.env.DEBUG': Boolean(process.env.DEBUG),
@@ -207,6 +212,7 @@ module.exports = buildDist ?
 
 if (!buildDist) {
     module.exports.devServer = {
+
         proxy: [{
             context: ['/api'],
             target: 'http://cbadmin.cubicbird.local:8000/cbadmin/',

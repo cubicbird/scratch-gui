@@ -472,7 +472,6 @@ GUIComponent.defaultProps = {
     isTotallyNormal: false,
     loading: false,
     showComingSoon: false,
-    showLoginModal: false,
     sessionExists: false,
     stageSizeMode: STAGE_SIZE_MODES.large
 };
