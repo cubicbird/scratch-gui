@@ -82,7 +82,7 @@ class Storage extends ScratchStorage {
             url: `${this.assetHost}/${asset.assetId}.${asset.dataFormat}`,
             withCredentials: true,
             headers: {
-                'Content-Disposition': `attachment; filename="${asset.assetId}.svg"`
+                'Content-Disposition': `attachment; filename="${asset.assetId}.${asset.dataFormat}"`
             }
         };
     }

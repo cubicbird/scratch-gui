@@ -89,25 +89,47 @@ const api = {
     },
 
     async updateProjectThumbnail (projectId, blob) {
-        console.log(blob);
+        const headers = {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Disposition': `attachment; filename="${projectId}.png"`
+        };
 
         const options = {
             method: 'POST',
-            headers: {
-                'X-Login': true
-            },
-            body: blob
+            credentials: 'include',
+            body: blob,
+            headers
         };
 
-        await fetch('/api/scratch/projecthumbnail', options)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('请检查用户名/密码');
-                }
+        const url = `/api/scratch/projecthumbnail/${projectId}`;
+
+        let response = await fetch(url, options);
+
+        if (!response.ok) {
+            if (response.status === 401 && refreshToken) {
+                // 尝试使用 refresh token 刷新 access token
+                await api.refreshAccessToken();
+                const newHeaders = {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Disposition': `attachment; filename="${projectId}.png"`
+                };
+                const newInit = {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: blob,
+                    newHeaders
+                };
+                // 重新发送请求
+                response = await fetch(url, newInit);
                 return response.json();
-            })
-            .then(console.log)
-            .catch(console.log);
+            }
+
+            // 这个地方应该考虑直接登出
+            throw new Error('Unable to refresh access token, check server log.');
+
+        }
+
+        return response.json();
     },
 
     async login (dispatch, username, password) {
@@ -206,9 +228,9 @@ const api = {
         return rest;
     },
 
-    getAssetUrlForGet: asset => {
+    getAssetUrlForGet: (asset, type = 'asset') => {
         const ossClient = api.createOssClient();
-        return ossClient.signatureUrl(`asset/${asset}`);
+        return ossClient.signatureUrl(`${type}/${asset}`);
     },
 
     getAssetUrlForPost: asset => api.getAssetUrlForGet(asset)

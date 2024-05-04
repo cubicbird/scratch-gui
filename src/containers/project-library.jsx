@@ -67,7 +67,7 @@ ProjectLibrary.propTypes = {
 
 ProjectLibrary.defaultProps = {
     getIconURLFromIconMd5: (iconMd5, iconRawURL) => (iconMd5 ?
-        `api/scratch/thumbnail/${iconMd5}` :
+        api.getAssetUrlForGet(iconMd5, 'thumbnail') :
         iconRawURL)
 };
 
