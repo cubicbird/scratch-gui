@@ -94,10 +94,12 @@ const AppStateHOC = function (WrappedComponent, localesOnly) {
 
         componentDidMount () {
             api.get_login_info(loginInfo => {
-
-                this.store.dispatch(setSession(loginInfo));
-                this.store.dispatch(setProjectId(loginInfo.lastProjectId));
-
+                if (loginInfo.session) {
+                    this.store.dispatch(setSession(loginInfo));
+                    this.store.dispatch(setProjectId(loginInfo.lastProjectId));
+                } else {
+                    this.store.dispatch(getNoSession());
+                }
             },
             () => this.store.dispatch(getNoSession()));
         }

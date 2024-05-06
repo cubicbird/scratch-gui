@@ -58,7 +58,6 @@ class ProjectLibrary extends React.PureComponent {
 
 ProjectLibrary.propTypes = {
     intl: intlShape.isRequired,
-    onActivateBlocksTab: PropTypes.func.isRequired,
     onRequestClose: PropTypes.func,
     onProjectClick: PropTypes.func,
     getIconURLFromIconMd5: PropTypes.func

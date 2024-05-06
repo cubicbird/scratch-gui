@@ -24,7 +24,10 @@ const setProjectOwner = owner => {
     }
     return {
         type: SET_PROJECT_OWNER,
-        owner: ''
+        owner: {
+            id: -1,
+            name: ''
+        }
     };
 };
 

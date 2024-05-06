@@ -34,6 +34,7 @@ import {
     projectError
 } from '../reducers/project-state';
 import api from './api';
+import {setProjectOwner} from '../reducers/project-owner';
 
 /**
  * Higher Order Component to provide behavior for saving projects.
@@ -54,6 +55,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 'tryToAutoSave'
             ]);
         }
+
         componentWillMount () {
             if (typeof window === 'object') {
                 // Note: it might be better to use a listener instead of assigning onbeforeunload;
@@ -67,6 +69,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
             this.props.onSetProjectThumbnailer(this.getProjectThumbnail);
             this.props.onSetProjectSaver(this.tryToAutoSave);
         }
+
         componentDidUpdate (prevProps) {
             if (!this.props.isAnyCreatingNewState && prevProps.isAnyCreatingNewState) {
                 this.reportTelemetryEvent('projectWasCreated');
@@ -118,6 +121,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 this.props.onAutoUpdateProject();
             }
         }
+
         componentWillUnmount () {
             this.clearAutoSaveTimeout();
             // Cant unset the beforeunload because it might no longer belong to this component
@@ -128,6 +132,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
             this.props.onSetProjectThumbnailer(null);
             this.props.onSetProjectSaver(null);
         }
+
         leavePageConfirm (e) {
             if (this.props.projectChanged) {
                 // both methods of returning a value may be necessary for browser compatibility
@@ -136,12 +141,14 @@ const ProjectSaverHOC = function (WrappedComponent) {
             }
             return; // Returning undefined prevents the prompt from coming up
         }
+
         clearAutoSaveTimeout () {
             if (this.props.autoSaveTimeoutId !== null) {
                 clearTimeout(this.props.autoSaveTimeoutId);
                 this.props.setAutoSaveTimeoutId(null);
             }
         }
+
         scheduleAutoSave () {
             if (this.props.isShowingSaveable && this.props.autoSaveTimeoutId === null) {
                 const timeoutId = setTimeout(this.tryToAutoSave,
@@ -149,14 +156,17 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 this.props.setAutoSaveTimeoutId(timeoutId);
             }
         }
+
         tryToAutoSave () {
             if (this.props.projectChanged && this.props.isShowingSaveable) {
                 this.props.onAutoUpdateProject();
             }
         }
+
         isShowingCreatable (props) {
             return props.canCreateNew && props.isShowingWithoutId;
         }
+
         updateProjectToStorage () {
             this.props.onShowSavingAlert();
 
@@ -177,16 +187,18 @@ const ProjectSaverHOC = function (WrappedComponent) {
                     this.props.onProjectError(err);
                 });
         }
+
         createNewProjectToStorage () {
             return this.storeProject(null)
                 .then(response => {
-                    this.props.onCreatedProject(response.id.toString(), this.props.loadingState);
+                    this.props.onCreatedProject(response.id.toString(), response.owner, this.props.loadingState);
                 })
                 .catch(err => {
                     this.props.onShowAlert('creatingError');
                     this.props.onProjectError(err);
                 });
         }
+
         createCopyToStorage () {
             this.props.onShowCreatingCopyAlert();
             return this.storeProject(null, {
@@ -195,7 +207,8 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 title: this.props.reduxProjectTitle
             })
                 .then(response => {
-                    this.props.onCreatedProject(response.id.toString(), this.props.loadingState);
+                    console.log(response);
+                    this.props.onCreatedProject(response.id.toString(), response.owner, this.props.loadingState);
                     this.props.onShowCopySuccessAlert();
                 })
                 .catch(err => {
@@ -203,6 +216,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
                     this.props.onProjectError(err);
                 });
         }
+
         createRemixToStorage () {
             this.props.onShowCreatingRemixAlert();
             return this.storeProject(null, {
@@ -211,7 +225,8 @@ const ProjectSaverHOC = function (WrappedComponent) {
                 title: this.props.reduxProjectTitle
             })
                 .then(response => {
-                    this.props.onCreatedProject(response.id.toString(), this.props.loadingState);
+                    console.log(response);
+                    this.props.onCreatedProject(response.id.toString(), response.owner, this.props.loadingState);
                     this.props.onShowRemixSuccessAlert();
                 })
                 .catch(err => {
@@ -219,6 +234,7 @@ const ProjectSaverHOC = function (WrappedComponent) {
                     this.props.onProjectError(err);
                 });
         }
+
         /**
          * storeProject:
          * @param  {number|string|undefined} projectId - defined value will PUT/update; undefined/null will POST/create
@@ -243,14 +259,15 @@ const ProjectSaverHOC = function (WrappedComponent) {
                         asset.dataFormat,
                         asset.data,
                         asset.assetId
-                    ).then(response => {
-                        // Asset servers respond with {status: ok} for successful POSTs
-                        if (response.status !== 'ok') {
-                            // Errors include a `code` property, e.g. "Forbidden"
-                            return Promise.reject(response.code);
-                        }
-                        asset.clean = true;
-                    })
+                    )
+                        .then(response => {
+                            // Asset servers respond with {status: ok} for successful POSTs
+                            if (response.status !== 'ok') {
+                                // Errors include a `code` property, e.g. "Forbidden"
+                                return Promise.reject(response.code);
+                            }
+                            asset.clean = true;
+                        })
                 )
             )
                 .then(() => this.props.onUpdateProjectData(projectId, savedVMState, requestParams))
@@ -408,9 +425,12 @@ const ProjectSaverHOC = function (WrappedComponent) {
     };
     ProjectSaverComponent.defaultProps = {
         autoSaveIntervalSecs: 600, // 10 minutes = 600 seconds
-        onRemixing: () => {},
-        onSetProjectThumbnailer: () => {},
-        onSetProjectSaver: () => {},
+        onRemixing: () => {
+        },
+        onSetProjectThumbnailer: () => {
+        },
+        onSetProjectSaver: () => {
+        },
         onUpdateProjectData: saveProjectToServer,
         onUpdateProjectThumbnail: (projectId, blob) => {
             api.updateProjectThumbnail(projectId, blob);
@@ -442,7 +462,10 @@ const ProjectSaverHOC = function (WrappedComponent) {
     };
     const mapDispatchToProps = dispatch => ({
         onAutoUpdateProject: () => dispatch(autoUpdateProject()),
-        onCreatedProject: (projectId, loadingState) => dispatch(doneCreatingProject(projectId, loadingState)),
+        onCreatedProject: (projectId, projectOwner, loadingState) => {
+            dispatch(doneCreatingProject(projectId, loadingState));
+            dispatch(setProjectOwner(projectOwner));
+        },
         onCreateProject: () => dispatch(createProject()),
         onProjectError: error => dispatch(projectError(error)),
         onSetProjectUnchanged: () => dispatch(setProjectUnchanged()),

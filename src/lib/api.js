@@ -1,6 +1,7 @@
 import {getLoginError, setSession} from '../reducers/session';
 import {setProjectId} from '../reducers/project-state';
 import OSS from 'ali-oss/lib/browser';
+import {head} from 'ali-oss/lib/common/object/head';
 
 let accessToken = null;
 let refreshToken = null;
@@ -10,9 +11,12 @@ let ossSecurityToken = null;
 
 const api = {
     async protectedRequest (url, method = 'GET', data = null) {
-        const headers = {
-            Authorization: `Bearer ${accessToken}`
-        };
+        const headers = {};
+        if (accessToken !== null) {
+            Object.assign(headers, {
+                Authorization: `Bearer ${accessToken}`
+            });
+        }
 
         const init = {
             method: method,
@@ -75,14 +79,25 @@ const api = {
             ossAccessKeyId = data.stsAccessId;
             ossAccessKeySecret = data.stsSecret;
             ossSecurityToken = data.stsToken;
-            resolve({
-                session: true,
-                user: {
-                    userId: data.userId,
-                    username: data.usernameForDisplay
-                },
-                lastProjectId: data.lastProjectId
-            });
+            if (data.userId === null) {
+                resolve({
+                    session: false,
+                    user: {
+                        userId: -1,
+                        username: null
+                    },
+                    lastProjectId: null
+                });
+            } else {
+                resolve({
+                    session: true,
+                    user: {
+                        userId: data.userId,
+                        username: data.usernameForDisplay
+                    },
+                    lastProjectId: data.lastProjectId
+                });
+            }
         })
             .catch(err => reject(err));
 
