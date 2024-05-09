@@ -4,6 +4,7 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 
 import LibraryItemComponent from '../components/library-item/library-item.jsx';
+import api from '../lib/api';
 
 class LibraryItem extends React.PureComponent {
     constructor (props) {
@@ -187,7 +188,7 @@ LibraryItem.propTypes = {
 
 LibraryItem.defaultProps = {
     getIconURLFromIconMd5: (iconMd5, iconRawURL) => (iconMd5 ?
-        `https://cdn.assets.scratch.mit.edu/internalapi/asset/${iconMd5}/get/` :
+        api.getAssetUrlForGet(iconMd5) :
         iconRawURL)
 };
 
