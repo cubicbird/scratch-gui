@@ -1,7 +1,6 @@
 import {getLoginError, setSession} from '../reducers/session';
-import {setProjectId} from '../reducers/project-state';
+import {getIsShowingWithId, setProjectId} from '../reducers/project-state';
 import OSS from 'ali-oss/lib/browser';
-import {head} from 'ali-oss/lib/common/object/head';
 
 let accessToken = null;
 let refreshToken = null;
@@ -147,7 +146,7 @@ const api = {
         return response.json();
     },
 
-    async login (dispatch, username, password) {
+    async login (dispatch, username, password,isShowingWithId) {
         const data = {
             username: username,
             password: password,
@@ -184,7 +183,12 @@ const api = {
                     }
                 }));
                 // dispatch(onSetProjectOwner(responseData.usernameForDisplay));
-                dispatch(setProjectId(responseData.lastProjectId));
+                // TODO，这里不对，如果当前已经打开了某个project了，我们不应该redirect去上一次的project
+                // if current hash is null :
+                if (!isShowingWithId) {
+                    dispatch(setProjectId(responseData.lastProjectId));
+                }
+
             })
             .catch(error => {
                 dispatch(getLoginError(error));

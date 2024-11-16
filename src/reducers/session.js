@@ -13,25 +13,45 @@ const reducer = function (state = initialState, action) {
     if (typeof state === 'undefined') state = initialState;
     switch (action.type) {
     case SET_SESSION:
-        state.session = true;
-        state.user = {
-            userId: action.session.user.userId,
-            username: action.session.user.username,
-            canCreateNew: true
+        // state.session = true;
+        // state.user = {
+        //     userId: action.session.user.userId,
+        //     username: action.session.user.username,
+        //     canCreateNew: true
+        // };
+        // state.errorMessage = null;
+        // return state;
+        return {
+            ...state, // 保留原有状态
+            session: true, // 更新 session 状态
+            user: {
+                userId: action.session.user.userId,
+                username: action.session.user.username,
+                canCreateNew: true
+            },
+            errorMessage: null // 清除错误信息
         };
-        state.errorMessage = null;
-        return state;
+
     case LOGIN_ERROR:
-        state.session = false;
-        state.user = null;
-        state.errorMessage = action.errorMessage;
-        return state;
+        return {
+            ...state,
+            session: false,
+            user: null,
+            errorMessage: action.errorMessage
+        };
+
+        // state.session = false;
+        // state.user = null;
+        // state.errorMessage = action.errorMessage;
+        // return state;
     case REMOVE_SESSION:
     case NO_SESSION:
-        state.session = false;
-        state.user = null;
-        state.errorMessage = null;
-        return state;
+        return {
+            ...state,
+            session: false,
+            user: null,
+            errorMessage: null
+        };
     }
     return state;
 };

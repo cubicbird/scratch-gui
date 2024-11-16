@@ -19,6 +19,7 @@ import Box from '../box/box';
 import Input from '../forms/input.jsx';
 import bindAll from 'lodash.bindall';
 import Label from '../forms/label';
+import {getIsShowingWithId} from '../../reducers/project-state';
 
 // these are here as a hack to get them translated, so that equivalent messages will be translated
 // when passed in from www via gui's renderLogin() function
@@ -89,7 +90,7 @@ class LoginDropdown extends React.Component {
             return;
         }
 
-        this.props.onSubmit(this.state.account, this.state.password);
+        this.props.onSubmit(this.state.account, this.state.password, this.props.isShowingWithId);
         this.props.onClose();
     }
 
@@ -139,12 +140,13 @@ class LoginDropdown extends React.Component {
 }
 
 const mapStateToProps = state => ({
-    loginError: state.scratchGui.session.errorMessage
+    loginError: state.scratchGui.session.errorMessage,
+    isShowingWithId: getIsShowingWithId(state.scratchGui.projectState.loadingState)
 });
 const mapDispatchToProps = dispatch => ({
     // onClose: () => dispatch(),
-    onSubmit: (account, password) => {
-        api.login(dispatch, account, password);
+    onSubmit: (account, password, isShowingWithId) => {
+        api.login(dispatch, account, password, isShowingWithId);
     }
 });
 
@@ -154,7 +156,9 @@ LoginDropdown.propTypes = {
     isRtl: PropTypes.bool,
     onClose: PropTypes.func,
     onSubmit: PropTypes.func.isRequired,
-    loginError: PropTypes.string
+    loginError: PropTypes.string,
+    isShowingWithId: PropTypes.bool
+
 };
 
 export default connect(
